@@ -1,70 +1,299 @@
-# Getting Started with Create React App
+# React + Redux
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## store の設定
 
-## Available Scripts
+src/store/index.js
 
-In the project directory, you can run:
+```
+import { createStore } from "redux";
 
-### `npm start`
+const initialState = {
+  count: 50,
+};
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+const reducer = (state = initialState) => {
+  return state;
+};
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Provider の設定
 
-### `npm test`
+src/index.js
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
+import { Provider } from "react-redux"
+import store from "./store/index";
 
-### `npm run build`
+ReactDOM.render(
+  // store内のデータをどのコンポーネントでも使えるようにする
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById("root")
+);
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## React + Redux には３つの表示方法がある。
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. 直接 store にアクセスする getState()
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- state の更新ができない。
 
-### `npm run eject`
+### store にある state へのアクセス
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+src/App.js
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+import "./App.css";
+import store from './store/index'
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+const App = () => {
+    return(
+        <div className="App">
+            <h1>Redux Learn</h1>
+            // store.getState().countを実行することでstoreに保存されているstateのcountにアクセスすることができる
+            <p>Count:{store.getState().count}</p>
+        </div>
+    )
+}
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+export default App;
+```
 
-## Learn More
+2. connect 関数の利用
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- mapStateToProps, mapDispatchToProps を使う
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### store にある state へのアクセス
 
-### Code Splitting
+src/App.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```
+import React from "react";
+import "./App.css";
+import { connect } from "react-redux";
 
-### Analyzing the Bundle Size
+// propsにcountを入れる
+const App = ({ count }) => {
+    return(
+        <div className="App">
+            <h1>Redux Learn</h1>
+            <p>Count:{count}</p>
+        </div>
+    )
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+const mapStateToProps = ( state ) => {
+    return { count: state.count }
+}
 
-### Making a Progressive Web App
+export default connect(mapStateToProps)(App);
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### データの変更　
 
-### Advanced Configuration
+src/store/index.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+import { createStore } from 'redux';
 
-### Deployment
+// 第二引数にactionを指定して、このactionの値によって処理を切り分ける
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'INCREASE_COUNT':
+      return {
+        count: state.count + 1,
+      };
+    case 'DECREASE_COUNT':
+      return {
+        count: state.count - 1,
+      };
+    default:
+      return state;
+  }
+};
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+const store = createStore(reducer);
 
-### `npm run build` fails to minify
+export default store;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+src/App.js
+
+```
+import React from "react";
+import "./App.css";
+import { connect } from "react-redux";
+
+const App = () => {
+    return(
+        <div className="App">
+            <h1>Redux Learn</h1>
+            <p>Count: {count}</p>
+            <button onClick={increase}>Up</button>
+            <button onClick={decrease}>Down</button>
+        </div>
+    )
+}
+
+const mapStateToProps = ( state ) => {
+    return { count: state.count };
+}
+
+// mapDispatchToPropsを使ってActionのtypeで処理をする関数を定義
+const mapDispatchToProps = ( dispatch ) => {
+    return {
+        increase: () => dispatch({ type: "INCREASE_COUNT"}),
+        decrease: () => dispatch({ type: "DECREASE_COUNT"}),
+    };
+}
+
+// connectの第二引数にmapDispatchToPropsを指定
+export default connect(mapStateToProps, mapDispatchToProps)(App);
+```
+
+3. Hooks の利用
+
+- useSelector, useDispatch を使う
+- combineReducer を使って目的や用途によって複数の reducer に分けられる
+- これを基本的に使う。
+
+### store にある state へのアクセス
+
+src/App.js
+
+```
+import React from "react";
+import "./App.css";
+import { useSelector } from "react-redux";
+
+const App = () => {
+    // useSelectorを使うとstoreに保存されているstateデータの中から必要なデータを選択して取り出すことができる。
+    const count = useSelector((state) => state.count);
+    return(
+        <div className="App">
+            <h1>Redux Learn</h1>
+            <p>Count:{count}</p>
+        </div>
+    )
+}
+
+export default App;
+```
+
+### combineReducer
+
+src/store/index.js
+
+```
+import { createStore, combineReducers } from "redux";
+
+// reducerを２つに分ける → countReducer, postsReducer
+const countReducer = (
+    state = {
+        count: 50,
+    }
+) => {
+    return state;
+}
+
+const postsReducer = (
+    state = {
+        posts: [
+            { id: 1, title: "Reduxについて"},
+            { id: 2, title: "ReduxのHooksについて"}
+        ]
+    }
+) => {
+    return state;
+}
+
+// combineReducersを使って２つのreducerを保存する
+const rootReducer = combineReducers({
+    countReducer,
+    postsReducer,
+})
+
+const store = createStore(rootReducer);
+```
+
+src/App.js
+
+```
+import React from "react";
+import "./App.css";
+import { useSelector } from "react-redux";
+
+const App = () => {
+    // state.countReducer.countでcombineReducersからcountReducerのcountにアクセスできる
+    const count = useSelector((state) => state.countReducer.count);
+    return(
+        <div className="App">
+            <h1>Redux Learn</h1>
+            <p>Count:{count}</p>
+        </div>
+    )
+}
+
+export default App;
+```
+
+### データの変更　
+
+src/store/index.js
+
+```
+import { createStore } from 'redux';
+
+// 第二引数にactionを指定して、このactionの値によって処理を切り分ける
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'INCREASE_COUNT':
+      return {
+        count: state.count + 1,
+      };
+    case 'DECREASE_COUNT':
+      return {
+        count: state.count - 1,
+      };
+    default:
+      return state;
+  }
+};
+
+const store = createStore(reducer);
+
+export default store;
+```
+
+src/App.js
+
+```
+import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+
+const App = () => {
+    const count = useSelector((state) => state.count);
+    const dispatch = useDispatch();
+    const increase = () => {
+        dispatch({ type: "INCREASE_COUNT"});
+    };
+    const decrease = () => {
+        dispatch({ type: "DECREASE_COUNT"})
+    }
+    return(
+        <div className="App">
+            <h1>Redux Learn</h1>
+            <p>Count: {count}</p>
+            <button onClick={increase}>Up</button>
+            <button onClick={decrease}>Down</button>
+        </div>
+    )
+}
+
+export default App;
+```

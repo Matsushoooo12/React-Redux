@@ -1,25 +1,38 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import store from "./store/index";
+import { connect, useSelector } from "react-redux";
+import Count from "./components/Count";
 
-function App() {
+function App({ count, increase, decrease }) {
+  // const count = useSelector((state) => state.countReducer.count);
+  // const increase = () => {
+  //   dispatch({ type: "INCREASE_COUNT" });
+  // };
+  // const decrease = () => {
+  //   dispatch({ type: "DECREASE_COUNT" });
+  // };
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Redex Learn</h1>
+      {/* <p>Count:{store.getState().count}</p> */}
+      {/* <p>Count:{count}</p> */}
+      <Count />
+      {/* <button onClick={increase}>Up</button>
+      <button onClick={decrease}>Down</button> */}
     </div>
   );
 }
 
-export default App;
+const mapStateToProps = (state) => {
+  return { count: state.count, posts: state.posts };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    increase: () => dispatch({ type: "INCREASE_COUNT" }),
+    decrease: () => dispatch({ type: "DECREASE_COUNT" }),
+  };
+};
+
+// export default connect(mapStateToProps)(App);
+export default connect(mapStateToProps, mapDispatchToProps)(App);
