@@ -1,5 +1,9 @@
 # React + Redux
 
+参考 URL
+
+https://reffect.co.jp/react/react-redux-for-beginner#Redux-3
+
 ## store の設定
 
 src/store/index.js
